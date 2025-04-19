@@ -1,5 +1,5 @@
 import pygame
-from constants import PLAYER_RADIUS, PLAYER_TURN_SPEED, PLAYER_SPEED, SHOT_RADIUS, PLAYER_SHOOT_SPEED
+from constants import PLAYER_RADIUS, PLAYER_TURN_SPEED, PLAYER_SPEED, SHOT_RADIUS, PLAYER_SHOOT_SPEED, PLAYER_SHOOT_COOLDOWN
 from circleshape import CircleShape
 from shot import Shot
 
@@ -8,6 +8,7 @@ class Player(CircleShape):
     def __init__(self, x, y):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
+        self.cooldown = 0
 
         if hasattr(self.__class__, "containers"):
             for group in self.__class__.containers:
@@ -34,6 +35,7 @@ class Player(CircleShape):
 
     def update(self, dt):
         keys = pygame.key.get_pressed()
+        self.cooldown -= dt
 
         if keys[pygame.K_a]:
             self.rotate(-dt)
@@ -47,9 +49,11 @@ class Player(CircleShape):
             self.shoot(dt)
 
     def shoot(self, dt):
+        if self.cooldown > 0:
+            return
         direction = pygame.Vector2(0, 1).rotate(self.rotation)
         velocity = direction * PLAYER_SHOOT_SPEED
         bullet = Shot(self.position.x, self.position.y, SHOT_RADIUS)
         bullet.velocity = velocity
-        
-
+        self.cooldown = PLAYER_SHOOT_COOLDOWN
+       
